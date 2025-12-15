@@ -53,4 +53,4 @@ jobs:
           context: .
           push: true
           # OJO: Taylinn tendrá que cambiar 'usuario' por su usuario de GitHub
-          tags: ghcr.io/${{ github.saronos }}/taylinn:latest
+          tags: ghcr.io/saronos/taylinn:latest
