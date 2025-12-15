@@ -1,6 +1,8 @@
 name: DevOps Bootcamp Pipeline
 
-permissions: contents: read packages: write
+permissions: 
+  contents: read 
+  packages: write
 
 # Trigger: ¿Cuándo se ejecuta esto?
 on:
