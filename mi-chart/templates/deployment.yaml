@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Usamos el nombre del Chart para que sea dinámico
+  name: {{ .Chart.Name }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  # Lee la cantidad de réplicas del values-xxx.yaml (1 en Dev, 3 en Pro)
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        # Construye la imagen uniendo repositorio + : + tag
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        # En Dev suele ser Always, en Pro IfNotPresent
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 5000
+        
+        # Inyectamos las variables de entorno para que la App sepa dónde está
+        env:
+        - name: MODO
+          value: {{ .Values.env.modo | quote }}
+        - name: VERSION
+          value: {{ .Values.env.version | quote }}
+        - name: COLOR_FONDO
+          value: {{ .Values.env.color_fondo | quote }}
+
+        # Liveness probe se queda igual (es buena práctica mantenerlo)
+        livenessProbe:
+          httpGet:
+            path: /hasta las huevas tete
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        
+        # Bloque mágico: convierte todo el bloque 'resources' del yaml en configuración
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}

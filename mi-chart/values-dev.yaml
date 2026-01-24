@@ -1,0 +1,22 @@
+# Configuración de Infraestructura
+replicaCount: 1
+
+image:
+  repository: ghcr.io/saronos/taylinn
+  tag: latest
+  pullPolicy: Always
+
+# Variables de Aplicación (Se inyectan al pod)
+env:
+  modo: "DESARROLLO (Rama Develop)"
+  version: "Integración Continua"
+  color_fondo: "#e3f2fd" # Azul claro
+
+# Recursos mínimos para no saturar el Sandbox
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi

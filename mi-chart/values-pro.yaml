@@ -1,0 +1,23 @@
+# Configuración de Infraestructura
+replicaCount: 3
+
+image:
+  repository: ghcr.io/saronos/taylinn
+  # El tag será sobreescrito por el Pipeline con la versión real (v1.0.0)
+  tag: latest 
+  pullPolicy: IfNotPresent
+
+# Variables de Aplicación
+env:
+  modo: "PRODUCCIÓN (Entorno Real)"
+  version: "Versión Estable"
+  color_fondo: "#ffebee" # Rojo muy suave (Peligro: entorno crítico)
+
+# Recursos garantizados
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
