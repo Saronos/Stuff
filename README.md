@@ -552,9 +552,11 @@ pytest-flask==1.3.0
 import os
 
 class Config:
+    # Para desarrollo local usa SQLite (sin Docker)
+    # En OpenShift usará PostgreSQL
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'DATABASE_URL',
-        'postgresql://postgres:postgres@localhost:5432/urlshortener'
+        'sqlite:///urlshortener.db'  # ← Archivo local, sin Docker
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     BASE_URL = os.getenv('BASE_URL', 'http://localhost:5000')
@@ -726,7 +728,7 @@ __all__ = ['create_app', 'app', 'db', 'URL']
 
 2. **Instala dependencias:**
    ```bash
-   pip install -r requirements.txt
+   python -m pip install -r requirements.txt
    ```
 
 3. **Ejecuta la app:**
