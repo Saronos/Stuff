@@ -769,7 +769,7 @@ Verifica que:
 
 </details>
 
-### 🧩 Retos de la Fase 1
+### 🧩 Retos de la Fase 1 (Done ✔ 30/01/2026)
 
 Antes de pasar a la siguiente fase, completa estos retos:
 
