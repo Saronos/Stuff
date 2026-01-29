@@ -522,7 +522,7 @@ colima start
 
 ---
 
-## Fase 1: Setup del Proyecto y API Local
+## Fase 1: Setup del Proyecto y API Local (Done ✔ 30/01/2026)
 
 ### 🎯 Objetivo
 Crear la API de Flask funcionando en tu máquina local.
@@ -769,7 +769,7 @@ Verifica que:
 
 </details>
 
-### 🧩 Retos de la Fase 1
+### 🧩 Retos de la Fase 1 (Done ✔ 30/01/2026)
 
 Antes de pasar a la siguiente fase, completa estos retos:
 
