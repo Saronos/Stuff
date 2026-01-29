@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: url-shortener-cleanup
+  labels:
+    app: url-shortener
+spec:
+  schedule: "0 2 * * *"  # Todos los días a las 2:00 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: cleanup
+              image: postgres:15-alpine
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  psql $DATABASE_URL -c "DELETE FROM urls WHERE expires_at < NOW();"
+                  echo "Cleanup completed at $(date)"
+              envFrom:
+                - secretRef:
+                    name: url-shortener-secret
+          restartPolicy: OnFailure

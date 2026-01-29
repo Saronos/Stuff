@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: url-shortener-config
+  labels:
+    app: url-shortener
+data:
+  BASE_URL: "https://url-shortener-Asstrid98.apps.sandbox-xxx.openshiftapps.com"
