@@ -27,6 +27,7 @@ spec:
       storage: {{ .Values.postgresql.storage }}
 
 ---
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -48,21 +49,29 @@ spec:
     spec:
       containers:
         - name: postgresql
-          image: postgres:15-alpine
+          # Usamos la imagen de Bitnami que está optimizada para OpenShift (no requiere root)
+          image: bitnami/postgresql:15
           ports:
             - containerPort: 5432
-          envFrom:
-            - secretRef:
-                name: postgresql-secret
+          env:
+            - name: POSTGRESQL_USER
+              value: {{ .Values.database.user | quote }}
+            - name: POSTGRESQL_PASSWORD
+              value: {{ .Values.database.password | quote }}
+            - name: POSTGRESQL_DATABASE
+              value: {{ .Values.database.name | quote }}
+            # Esta es la clave: le decimos que use una subcarpeta
+            - name: PGDATA
+              value: /var/lib/postgresql/data/mydata
           volumeMounts:
             - name: postgresql-data
               mountPath: /var/lib/postgresql/data
           resources:
             requests:
-              memory: "128Mi"
+              memory: "256Mi"
               cpu: "100m"
             limits:
-              memory: "256Mi"
+              memory: "512Mi"
               cpu: "500m"
       volumes:
         - name: postgresql-data
