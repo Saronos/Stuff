@@ -1,0 +1,51 @@
+# Default values for url-shortener
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/TU-USUARIO/url-shortener
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 5000
+
+route:
+  enabled: true
+  host: ""  # Dejar vacío para autogenerar
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"
+
+config:
+  baseUrl: ""  # Se autoconfigura con la route
+
+database:
+  enabled: true
+  host: postgresql
+  port: 5432
+  name: urlshortener
+  user: urlshortener
+  password: password123  # Override en producción
+
+postgresql:
+  enabled: true
+  storage: 1Gi
+
+cronjob:
+  enabled: true
+  schedule: "0 2 * * *"
+
+probes:
+  liveness:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 5
