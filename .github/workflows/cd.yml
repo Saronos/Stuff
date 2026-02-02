@@ -28,13 +28,11 @@ jobs:
       
       - name: Deploy with Helm
         run: |
-          # El comando upgrade --install es el estándar de la industria:
-          # Si la App no existe, la instala. Si ya existe, la actualiza.
           helm upgrade --install url-shortener ./helm/url-shortener \
             --set image.repository=ghcr.io/${{ github.repository }} \
             --set image.tag=latest \
             --namespace asstrid-dev \
-            --wait
+            --wait --timeout 15m0s
       
       - name: Verify Deployment
         run: |
