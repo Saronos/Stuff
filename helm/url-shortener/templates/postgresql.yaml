@@ -49,17 +49,19 @@ spec:
     spec:
       containers:
         - name: postgresql
-          # Usamos la imagen de Bitnami que está optimizada para OpenShift (no requiere root)
-          image: bitnami/postgresql:15
+          # CAMBIA ESTA LÍNEA (Línea 43 aprox):
+          image: image-registry.openshift-image-registry.svc:5000/openshift/postgresql:12-el8
           ports:
             - containerPort: 5432
           env:
+            # Revisa que estos nombres coincidan con la imagen de OpenShift:
             - name: POSTGRESQL_USER
               value: {{ .Values.database.user | quote }}
             - name: POSTGRESQL_PASSWORD
               value: {{ .Values.database.password | quote }}
             - name: POSTGRESQL_DATABASE
               value: {{ .Values.database.name | quote }}
+            # Elimina o comenta la variable PGDATA, la imagen oficial no la necesita igual
             # Esta es la clave: le decimos que use una subcarpeta
             - name: PGDATA
               value: /var/lib/postgresql/data/mydata
