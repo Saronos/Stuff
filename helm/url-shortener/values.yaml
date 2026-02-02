@@ -34,7 +34,7 @@ database:
   port: 5432
   # IMPORTANTE: Asegúrate de que estos coincidan con el Secret de postgresql.yaml
   name: urlshortener
-  user: user123
+  user: asstrid98
   password: password123
 
 postgresql:
