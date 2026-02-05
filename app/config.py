@@ -1,5 +1,6 @@
 import os
 
+
 class Config:
     # Local: SQLite (sin instalaciones extra)
     # OpenShift: PostgreSQL (configurado por variable de entorno)
