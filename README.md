@@ -1,4 +1,4 @@
-[url-shortener-guide.md](https://github.com/user-attachments/files/24839525/url-shortener-guide.md)
+[url-shortener-guide-2 (1).md](https://github.com/user-attachments/files/25110473/url-shortener-guide-2.1.md)
 # 🔗 Proyecto: URL Shortener
 
 ## Tu Misión DevOps
@@ -205,11 +205,53 @@ url-shortener/
 ## Fase 0: Setup del Entorno
 
 ### 🎯 Objetivo
-Configurar todo lo necesario antes de empezar a desarrollar: OpenShift, GitHub Container Registry, herramientas CLI y secrets.
+Configurar todo lo necesario antes de empezar a desarrollar: Python, OpenShift CLI, y secrets en GitHub.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   💡 NOTA IMPORTANTE                                        │
+│                                                             │
+│   NO necesitas Docker en tu máquina.                        │
+│   GitHub Actions construye las imágenes por ti.             │
+│                                                             │
+│   Local: Python + SQLite (simple, sin instalaciones extra)  │
+│   OpenShift: PostgreSQL (lo maneja el pipeline)             │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ### 📝 Tareas
 
-#### 0.1 Crear cuenta en OpenShift Developer Sandbox
+#### 0.1 Instalar Python
+
+**Windows:**
+1. Ve a [python.org/downloads](https://www.python.org/downloads/)
+2. Descarga Python **3.11** o **3.12** (NO 3.14, es muy nueva)
+3. Al instalar, **marca la casilla:**
+   
+   ☑️ **"Add python.exe to PATH"** ← MUY IMPORTANTE
+   
+4. Completa la instalación
+5. Cierra y vuelve a abrir VS Code / Git Bash
+6. Verifica:
+   ```bash
+   python --version
+   # Python 3.11.x o 3.12.x
+   ```
+
+**Mac:**
+```bash
+brew install python@3.11
+```
+
+**Linux:**
+```bash
+sudo apt update
+sudo apt install python3.11 python3.11-venv python3-pip
+```
+
+#### 0.2 Crear cuenta en OpenShift Developer Sandbox
 
 1. Ve a [https://developers.redhat.com/developer-sandbox](https://developers.redhat.com/developer-sandbox)
 
@@ -236,29 +278,25 @@ Configurar todo lo necesario antes de empezar a desarrollar: OpenShift, GitHub C
 └─────────────────────────────────────────────────────────────┘
 ```
 
-#### 0.2 Instalar OpenShift CLI (oc)
+#### 0.3 Instalar OpenShift CLI (oc)
 
-**Mac (con Homebrew):**
+**Windows:**
+1. En la consola web de OpenShift, haz clic en **Help (?)** → **Command Line Tools**
+2. Descarga el archivo para Windows
+3. Extrae el zip
+4. Mueve `oc.exe` a una carpeta en tu PATH (por ejemplo `C:\Windows\`)
+5. O añade la carpeta donde lo extrajiste al PATH de Windows
+
+**Mac:**
 ```bash
 brew install openshift-cli
 ```
 
 **Linux:**
 ```bash
-# Descargar desde la consola de OpenShift
-# En la consola web: Help (?) → Command Line Tools → Download oc
-
-# O directamente:
 wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz
 tar xvf openshift-client-linux.tar.gz
 sudo mv oc /usr/local/bin/
-```
-
-**Windows:**
-```powershell
-# Descargar desde la consola de OpenShift
-# O usar chocolatey:
-choco install openshift-cli
 ```
 
 **Verificar instalación:**
@@ -267,7 +305,7 @@ oc version
 # Client Version: 4.x.x
 ```
 
-#### 0.3 Obtener token y hacer login en OpenShift
+#### 0.4 Obtener token y hacer login en OpenShift
 
 1. En la consola web de OpenShift, haz clic en tu nombre (arriba a la derecha)
 
@@ -297,63 +335,15 @@ oc project
 │                                                             │
 │   ⚠️  IMPORTANTE: El token expira cada 24 horas             │
 │                                                             │
-│   Si ves errores de autenticación, repite el paso 0.3      │
+│   Si ves errores de autenticación, repite el paso 0.4      │
 │   para obtener un nuevo token.                              │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-#### 0.4 Configurar GitHub Container Registry (ghcr.io)
-
-GitHub Container Registry te permite guardar tus imágenes Docker gratis.
-
-**Paso 1: Crear un Personal Access Token (PAT)**
-
-1. Ve a GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
-
-2. Haz clic en **"Generate new token (classic)"**
-
-3. Configura:
-   - **Note:** `ghcr-url-shortener`
-   - **Expiration:** 90 días (o el que prefieras)
-   - **Scopes:** Marca estos:
-     - ✅ `write:packages`
-     - ✅ `read:packages`
-     - ✅ `delete:packages`
-
-4. Haz clic en **"Generate token"**
-
-5. **¡COPIA EL TOKEN AHORA!** No podrás verlo de nuevo.
-
-**Paso 2: Login a ghcr.io desde tu máquina**
-
-```bash
-# Guarda tu token en una variable (reemplaza con tu token)
-export CR_PAT=ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-# Login a GitHub Container Registry
-echo $CR_PAT | docker login ghcr.io -u TU-USUARIO-GITHUB --password-stdin
-
-# Deberías ver: Login Succeeded
-```
-
-**Paso 3: Probar que funciona**
-
-```bash
-# Crea una imagen de prueba
-docker pull alpine
-docker tag alpine ghcr.io/TU-USUARIO-GITHUB/test:latest
-
-# Push a ghcr.io
-docker push ghcr.io/TU-USUARIO-GITHUB/test:latest
-
-# Si funciona, borra la imagen de prueba
-# Ve a GitHub → Packages → test → Delete
-```
-
 #### 0.5 Configurar Secrets en GitHub Actions
 
-Para que el pipeline pueda hacer push a ghcr.io y deploy a OpenShift, necesita secrets.
+Para que el pipeline pueda hacer deploy a OpenShift, necesita secrets.
 
 **Paso 1: Ir a los secrets del repositorio**
 
@@ -365,8 +355,8 @@ Para que el pipeline pueda hacer push a ghcr.io y deploy a OpenShift, necesita s
 
 | Secret Name | Valor | Cómo obtenerlo |
 |-------------|-------|----------------|
-| `OPENSHIFT_SERVER` | `https://api.sandbox-xxx.openshiftapps.com:6443` | Del comando de login (paso 0.3) |
-| `OPENSHIFT_TOKEN` | `sha256~XXXXXXX...` | Del comando de login (paso 0.3) |
+| `OPENSHIFT_SERVER` | `https://api.sandbox-xxx.openshiftapps.com:6443` | Del comando de login (paso 0.4) |
+| `OPENSHIFT_TOKEN` | `sha256~XXXXXXX...` | Del comando de login (paso 0.4) |
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -376,39 +366,32 @@ Para que el pipeline pueda hacer push a ghcr.io y deploy a OpenShift, necesita s
 │   GitHub Actions tiene acceso a ghcr.io usando el token     │
 │   automático ${{ secrets.GITHUB_TOKEN }}                    │
 │                                                             │
-│   No necesitas añadir el PAT como secret para el CI/CD.     │
+│   No necesitas crear ningún token adicional para ghcr.io    │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-#### 0.6 Instalar herramientas adicionales (recomendado)
+#### 0.6 Instalar Helm
 
-**Helm (gestor de paquetes para Kubernetes):**
+**Windows:**
+1. Descarga desde [github.com/helm/helm/releases](https://github.com/helm/helm/releases)
+2. Extrae el zip
+3. Mueve `helm.exe` al mismo lugar donde pusiste `oc.exe`
+
+**Mac:**
 ```bash
-# Mac
 brew install helm
+```
 
-# Linux
+**Linux:**
+```bash
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+```
 
-# Verificar
+**Verificar:**
+```bash
 helm version
 ```
-
-**kubectl (opcional, oc hace lo mismo):**
-```bash
-# Mac
-brew install kubectl
-
-# Linux
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-chmod +x kubectl
-sudo mv kubectl /usr/local/bin/
-```
-
-**Docker Desktop o Podman:**
-- Docker Desktop: [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
-- Podman (alternativa open source): `brew install podman`
 
 ### ✅ Checkpoint de Validación
 
@@ -418,27 +401,25 @@ sudo mv kubectl /usr/local/bin/
 Ejecuta estos comandos y verifica que todos funcionan:
 
 ```bash
-# 1. OpenShift CLI instalado
+# 1. Python instalado
+python --version
+# ✅ Debe mostrar Python 3.11.x o 3.12.x
+
+# 2. Pip funciona
+python -m pip --version
+# ✅ Debe mostrar la versión de pip
+
+# 3. OpenShift CLI instalado
 oc version
 # ✅ Debe mostrar la versión del cliente
 
-# 2. Conectado a OpenShift
+# 4. Conectado a OpenShift
 oc whoami
 # ✅ Debe mostrar tu usuario
 
-# 3. Tienes un proyecto/namespace
+# 5. Tienes un proyecto/namespace
 oc project
 # ✅ Debe mostrar "tu-usuario-dev"
-
-# 4. Docker funciona
-docker --version
-# ✅ Debe mostrar la versión
-
-# 5. Puedes hacer push a ghcr.io
-docker pull alpine
-docker tag alpine ghcr.io/TU-USUARIO/test-setup:v1
-docker push ghcr.io/TU-USUARIO/test-setup:v1
-# ✅ Debe subir sin errores
 
 # 6. Helm instalado
 helm version
@@ -449,33 +430,23 @@ helm version
 # ✅ Debes ver OPENSHIFT_SERVER y OPENSHIFT_TOKEN
 ```
 
-**Si todo funciona, ¡estás listo para empezar!** 🚀
+**Si todo funciona, ¡estás lista para empezar!** 🚀
 
 </details>
 
 <details>
-<summary>💡 Hint: Error "unauthorized" al hacer push a ghcr.io</summary>
+<summary>💡 Hint: El comando python no funciona</summary>
 
-1. Verifica que hiciste login:
+En Windows, prueba con:
 ```bash
-cat ~/.docker/config.json | grep ghcr
-# Debe aparecer ghcr.io
+py --version
 ```
 
-2. Si no aparece, haz login de nuevo:
+Si `py` funciona pero `python` no, puedes usar `py` en todos los comandos:
 ```bash
-echo $CR_PAT | docker login ghcr.io -u TU-USUARIO --password-stdin
-```
-
-3. Verifica que el token tiene los permisos correctos (`write:packages`)
-
-4. El nombre de la imagen debe empezar con tu usuario:
-```bash
-# ✅ Correcto
-ghcr.io/tu-usuario/mi-imagen:tag
-
-# ❌ Incorrecto
-ghcr.io/mi-imagen:tag
+py -m pip install -r requirements.txt
+py -m pytest tests/ -v
+py -m app.app
 ```
 
 </details>
@@ -493,36 +464,9 @@ El token del Sandbox expira cada 24 horas. Para renovarlo:
 
 </details>
 
-<details>
-<summary>💡 Hint: No puedo instalar Docker Desktop</summary>
-
-Alternativas:
-
-**Podman (recomendado para Linux):**
-```bash
-# Funciona igual que Docker
-brew install podman  # Mac
-sudo apt install podman  # Ubuntu
-
-# Alias para usar comandos docker
-alias docker=podman
-```
-
-**Rancher Desktop:**
-- Alternativa gratuita a Docker Desktop
-- https://rancherdesktop.io/
-
-**Colima (Mac):**
-```bash
-brew install colima
-colima start
-```
-
-</details>
-
 ---
 
-## Fase 1: Setup del Proyecto y API Local (Done ✔ 30/01/2026)
+## Fase 1: Setup del Proyecto y API Local
 
 ### 🎯 Objetivo
 Crear la API de Flask funcionando en tu máquina local.
@@ -546,20 +490,71 @@ pytest==7.4.3
 pytest-flask==1.3.0
 ```
 
+> 💡 **Nota:** `psycopg2-binary` es para PostgreSQL en OpenShift. Si te da error al instalarlo localmente, puedes ignorarlo (local usa SQLite).
+
+#### 1.2b Crea el archivo `.gitignore`
+
+```
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# SQLite (base de datos local)
+*.db
+urlshortener.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# OS
+.DS_Store
+Thumbs.db
+```
+
 #### 1.3 Crea `app/config.py`
 
 ```python
 import os
 
 class Config:
-    # Para desarrollo local usa SQLite (sin Docker)
-    # En OpenShift usará PostgreSQL
+    # Local: SQLite (sin instalaciones extra)
+    # OpenShift: PostgreSQL (configurado por variable de entorno)
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'DATABASE_URL',
-        'sqlite:///urlshortener.db'  # ← Archivo local, sin Docker
+        'sqlite:///urlshortener.db'  # Base de datos local en un archivo
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     BASE_URL = os.getenv('BASE_URL', 'http://localhost:5000')
+```
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   💡 ¿Por qué SQLite local y PostgreSQL en OpenShift?       │
+│                                                             │
+│   • SQLite: Un simple archivo, no necesita instalar nada    │
+│   • PostgreSQL: Base de datos "de verdad" para producción   │
+│                                                             │
+│   El código es el mismo, solo cambia la URL de conexión.    │
+│   En OpenShift, la variable DATABASE_URL apunta a Postgres. │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 #### 1.4 Crea `app/models.py`
@@ -715,28 +710,33 @@ __all__ = ['create_app', 'app', 'db', 'URL']
 <details>
 <summary>🔍 ¿Cómo sé que lo hice bien?</summary>
 
-1. **Levanta PostgreSQL local** (con Docker):
-   ```bash
-   docker run -d \
-     --name postgres-local \
-     -e POSTGRES_USER=postgres \
-     -e POSTGRES_PASSWORD=postgres \
-     -e POSTGRES_DB=urlshortener \
-     -p 5432:5432 \
-     postgres:15
-   ```
-
-2. **Instala dependencias:**
+1. **Instala dependencias:**
    ```bash
    python -m pip install -r requirements.txt
    ```
 
-3. **Ejecuta la app:**
+   > ⚠️ Si da error con `psycopg2-binary`, créate un `requirements-dev.txt` sin esa línea:
+   > ```txt
+   > flask==3.0.0
+   > flask-sqlalchemy==3.1.1
+   > python-dotenv==1.0.0
+   > gunicorn==21.2.0
+   > pytest==7.4.3
+   > pytest-flask==1.3.0
+   > ```
+   > Y ejecuta: `python -m pip install -r requirements-dev.txt`
+
+2. **Ejecuta la app:**
    ```bash
    python -m app.app
    ```
+   
+   Deberías ver:
+   ```
+   * Running on http://127.0.0.1:5000
+   ```
 
-4. **Prueba los endpoints:**
+3. **Prueba los endpoints** (en otra terminal):
    ```bash
    # Crear URL corta
    curl -X POST http://localhost:5000/shorten \
@@ -754,22 +754,56 @@ __all__ = ['create_app', 'app', 'db', 'URL']
    # {"status": "ready"}
    ```
 
-5. **Abre en el navegador:** `http://localhost:5000/abc123` → Debe redirigir a Google
+4. **Abre en el navegador:** `http://localhost:5000/abc123` → Debe redirigir a Google
+
+5. **Verifica que se creó la base de datos:**
+   ```bash
+   ls -la
+   # Deberías ver: urlshortener.db (archivo SQLite)
+   ```
 
 </details>
 
 <details>
-<summary>💡 Hint: No me funciona la conexión a la base de datos</summary>
+<summary>💡 Hint: curl no funciona en Windows</summary>
 
-Verifica que:
-1. El contenedor de PostgreSQL está corriendo: `docker ps`
-2. El puerto 5432 está libre: `lsof -i :5432`
-3. Las credenciales en `config.py` coinciden con las del contenedor
-4. Prueba la conexión: `psql -h localhost -U postgres -d urlshortener`
+En Git Bash, `curl` debería funcionar. Si no:
+
+**Opción 1:** Usa PowerShell:
+```powershell
+Invoke-WebRequest -Uri "http://localhost:5000/health/live" -Method GET
+```
+
+**Opción 2:** Usa el navegador o Postman para probar los endpoints.
+
+**Opción 3:** Instala curl con Git for Windows (ya viene incluido normalmente).
 
 </details>
 
-### 🧩 Retos de la Fase 1 (Done ✔ 30/01/2026)
+<details>
+<summary>💡 Hint: Error "Address already in use"</summary>
+
+El puerto 5000 está ocupado. Opciones:
+
+1. Mata el proceso que lo usa:
+   ```bash
+   # Windows
+   netstat -ano | findstr :5000
+   taskkill /PID <numero> /F
+   
+   # Mac/Linux
+   lsof -i :5000
+   kill -9 <PID>
+   ```
+
+2. O cambia el puerto en `app.py`:
+   ```python
+   app.run(host='0.0.0.0', port=5001, debug=True)
+   ```
+
+</details>
+
+### 🧩 Retos de la Fase 1
 
 Antes de pasar a la siguiente fase, completa estos retos:
 
@@ -1082,7 +1116,21 @@ pytest --cov=app --cov-report=term-missing tests/
 ## Fase 3: Dockerización
 
 ### 🎯 Objetivo
-Crear un Dockerfile optimizado multi-stage para tu aplicación.
+Crear un Dockerfile para que GitHub Actions pueda construir la imagen y desplegarla en OpenShift.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   💡 NO necesitas Docker en tu máquina                      │
+│                                                             │
+│   Solo creas el Dockerfile. GitHub Actions:                 │
+│   1. Lee tu Dockerfile                                      │
+│   2. Construye la imagen                                    │
+│   3. La sube a ghcr.io                                      │
+│   4. La despliega en OpenShift                              │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ### 📝 Tareas
 
@@ -1143,6 +1191,8 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "app.app:app"]
 ```
 
+> 📝 **Nota:** Este Dockerfile usa `python:3.11-slim` (no 3.14) para evitar problemas de compatibilidad.
+
 #### 3.2 Crea el `.dockerignore`
 
 ```
@@ -1167,6 +1217,8 @@ htmlcov/
 k8s/
 helm/
 .github/
+*.db
+urlshortener.db
 ```
 
 ### ✅ Checkpoint de Validación
@@ -1174,78 +1226,47 @@ helm/
 <details>
 <summary>🔍 ¿Cómo sé que lo hice bien?</summary>
 
-```bash
-# Construye la imagen
-docker build -t url-shortener:local .
+Como no tienes Docker local, la validación es más simple:
 
-# Verifica el tamaño (debería ser < 200MB)
-docker images url-shortener:local
+1. **Verifica que los archivos existen:**
+   ```bash
+   ls -la Dockerfile .dockerignore
+   # Deben aparecer ambos archivos
+   ```
 
-# Ejecuta con la BD que ya tienes corriendo
-docker run -d \
-  --name url-shortener \
-  -p 5000:5000 \
-  -e DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/urlshortener \
-  url-shortener:local
+2. **Verifica la sintaxis del Dockerfile:**
+   - Abre el Dockerfile en VS Code
+   - Si tienes la extensión de Docker, te marcará errores de sintaxis
+   - Si no hay errores, ¡está bien!
 
-# Prueba
-curl http://localhost:5000/health/live
-
-# Limpia
-docker stop url-shortener && docker rm url-shortener
-```
-
-</details>
-
-<details>
-<summary>💡 Hint: Error de conexión a la base de datos desde Docker</summary>
-
-En Mac/Windows usa `host.docker.internal` para acceder al host.
-En Linux usa `--network host` o la IP del host.
-
-```bash
-# Linux alternativa
-docker run -d \
-  --network host \
-  -e DATABASE_URL=postgresql://postgres:postgres@localhost:5432/urlshortener \
-  url-shortener:local
-```
+3. **La prueba real será en la Fase 5:**
+   - Cuando configures GitHub Actions, el pipeline construirá la imagen
+   - Si hay errores en el Dockerfile, el pipeline fallará y te dirá qué arreglar
 
 </details>
 
 ### 🧩 Retos de la Fase 3
 
 <details>
-<summary>🎯 Reto 3.1: Optimizar el tamaño de la imagen</summary>
+<summary>🎯 Reto 3.1: Entender el Dockerfile multi-stage</summary>
 
-**Problema:** La imagen puede ser más pequeña.
+**Problema:** Tienes un Dockerfile pero no entiendes por qué está estructurado así.
 
-**Tu tarea:** 
-1. Ejecuta `docker images url-shortener:local` y anota el tamaño actual
-2. Investiga e implementa al menos 2 optimizaciones:
-   - ¿Podrías usar `python:3.11-alpine` en vez de `slim`?
-   - ¿Hay dependencias en requirements.txt que no necesitas en runtime?
-   - ¿Puedes usar `--no-install-recommends` en apt-get?
-3. Consigue reducir el tamaño al menos un **20%**
+**Tu tarea:** Responde estas preguntas (investiga si es necesario):
 
-**¿Cómo sé que lo hice bien?**
-```bash
-# Antes
-docker images url-shortener:local
-# REPOSITORY       TAG     SIZE
-# url-shortener    local   180MB
+1. ¿Por qué hay dos `FROM` en el Dockerfile? ¿Qué ventaja tiene?
+2. ¿Por qué instalamos `gcc` y `libpq-dev` en el builder pero no en runtime?
+3. ¿Qué hace el comando `COPY --from=builder`?
+4. ¿Por qué creamos un usuario `appuser` en vez de usar root?
+5. ¿Para qué sirve el `HEALTHCHECK`?
 
-# Después (ejemplo)
-docker images url-shortener:optimized
-# REPOSITORY       TAG         SIZE
-# url-shortener    optimized   140MB  # ¡20% menos!
-```
+**Bonus:** ¿Cuánto más pesaría la imagen si no usáramos multi-stage? (pista: el builder tiene compiladores)
 
-**Advertencia:** Si usas Alpine, tendrás que cambiar algunas dependencias. ¡Investiga!
+**¿Cómo sé que lo hice bien?** Escribe tus respuestas en un archivo `DOCKERFILE-EXPLICADO.md` en tu repo.
 </details>
 
 <details>
-<summary>🎯 Reto 3.2: Añadir labels a la imagen</summary>
+<summary>🎯 Reto 3.2: Añadir labels al Dockerfile</summary>
 
 **Problema:** Tu imagen no tiene metadatos que indiquen quién la creó, versión, etc.
 
@@ -1256,43 +1277,41 @@ docker images url-shortener:optimized
 - `org.opencontainers.image.authors`
 - `org.opencontainers.image.source` (URL del repo)
 
-**Pista:** Usa `LABEL` en el Dockerfile. Puedes usar ARG para pasar la versión en build time.
+**Pista:** Usa `LABEL` en el Dockerfile después del segundo `FROM`:
+```dockerfile
+FROM python:3.11-slim as runtime
 
-**¿Cómo sé que lo hice bien?**
-```bash
-docker inspect url-shortener:local --format='{{json .Config.Labels}}' | jq
-# {
-#   "org.opencontainers.image.title": "URL Shortener",
-#   "org.opencontainers.image.version": "1.0.0",
-#   ...
-# }
+LABEL org.opencontainers.image.title="URL Shortener"
+LABEL org.opencontainers.image.description="A simple URL shortener API"
+# ... añade los demás
 ```
+
+**¿Cómo sé que lo hice bien?** Cuando el pipeline corra, podrás ver los labels en GitHub Packages.
 </details>
 
 <details>
-<summary>🎯 Reto 3.3: Seguridad - Escanear vulnerabilidades</summary>
+<summary>🎯 Reto 3.3: Investigar sobre seguridad en contenedores</summary>
 
-**Problema:** No sabes si tu imagen tiene vulnerabilidades conocidas.
+**Problema:** No sabes qué vulnerabilidades podría tener tu imagen.
 
 **Tu tarea:**
-1. Instala Trivy: `brew install trivy` (Mac) o descárgalo de GitHub
-2. Escanea tu imagen: `trivy image url-shortener:local`
-3. Si encuentra vulnerabilidades HIGH o CRITICAL:
-   - Investiga cuál es la causa
-   - Intenta solucionarlas (actualizar base image, dependencias, etc.)
+1. Investiga qué es **Trivy** y para qué sirve
+2. Investiga qué son las vulnerabilidades **CVE**
+3. Mira el Dockerfile: ¿qué medidas de seguridad ya tiene?
+   - Pista: busca `USER`, `--no-cache-dir`, imagen `slim`
+4. Cuando llegues a la Fase 5, añadirás Trivy al pipeline
 
-**¿Cómo sé que lo hice bien?**
-```bash
-trivy image url-shortener:local
+**Escribe tus hallazgos en un archivo `SEGURIDAD.md`**
 
-# Objetivo: 0 vulnerabilidades CRITICAL
-# Aceptable: máximo 2-3 HIGH (algunas son difíciles de arreglar)
-```
+Preguntas a responder:
+- ¿Qué es un CVE?
+- ¿Por qué es malo correr como root en un contenedor?
+- ¿Qué hace `--no-cache-dir` en pip y por qué es buena práctica?
 </details>
 
 ---
 
-## Fase 4: Manifiestos de Kubernetes (Done ✔ 1/2/2026)
+## Fase 4: Manifiestos de Kubernetes
 
 ### 🎯 Objetivo
 Crear los manifiestos de Kubernetes para desplegar tu aplicación.
@@ -1763,7 +1782,7 @@ oc logs job/<nombre-del-job>
 
 ---
 
-## Fase 5: GitHub Actions CI/CD (✔ 2/2/2026)
+## Fase 5: GitHub Actions CI/CD
 
 ### 🎯 Objetivo
 Automatizar el build, test y deploy con GitHub Actions.
@@ -2902,10 +2921,9 @@ Cuando termines, evalúa tu trabajo:
 | Endpoint GET /:code redirige | 5 | |
 | **Tests pasan** | 10 | |
 | Todos los tests en verde | 10 | |
-| **Docker** | 15 | |
-| Imagen construye sin errores | 5 | |
-| Multi-stage build | 5 | |
-| Tamaño < 200MB | 5 | |
+| **Docker** | 10 | |
+| Dockerfile creado correctamente | 5 | |
+| .dockerignore configurado | 5 | |
 | **Kubernetes** | 20 | |
 | Deployment funciona | 5 | |
 | Service expone correctamente | 5 | |
@@ -2922,7 +2940,7 @@ Cuando termines, evalúa tu trabajo:
 | Values por entorno funcionan | 5 | |
 | **CronJob** | 5 | |
 | CronJob configurado | 5 | |
-| **TOTAL BASE** | **110** | |
+| **TOTAL BASE** | **105** | |
 
 ---
 
@@ -2939,9 +2957,9 @@ Cuando termines, evalúa tu trabajo:
 | 2.2 Test de expiración | 10 | |
 | 2.3 Cobertura 80%+ | 5 | |
 | **Fase 3** | | |
-| 3.1 Optimizar imagen 20% | 10 | |
+| 3.1 Entender Dockerfile multi-stage | 5 | |
 | 3.2 Labels OCI | 5 | |
-| 3.3 Escaneo Trivy sin CRITICAL | 10 | |
+| 3.3 Investigar seguridad contenedores | 5 | |
 | **Fase 4** | | |
 | 4.1 Debugging del Deployment | 5 | |
 | 4.2 HorizontalPodAutoscaler | 10 | |
@@ -2957,7 +2975,7 @@ Cuando termines, evalúa tu trabajo:
 | 6.2 Ingress alternativo | 10 | |
 | 6.3 Helm hooks migraciones | 15 | |
 | 6.4 Umbrella chart | 15 | |
-| **TOTAL RETOS** | **205** | |
+| **TOTAL RETOS** | **190** | |
 
 ---
 
@@ -2977,16 +2995,16 @@ Cuando termines, evalúa tu trabajo:
 
 | Sección | Máximo | Tu puntuación |
 |---------|--------|---------------|
-| Base | 110 | |
-| Retos | 205 | |
+| Base | 105 | |
+| Retos | 190 | |
 | Bonus | 120 | |
-| **TOTAL** | **435** | |
+| **TOTAL** | **415** | |
 
 **Niveles:**
-- 🥉 **110-160 puntos:** Junior DevOps - ¡Buen comienzo!
-- 🥈 **161-260 puntos:** Mid DevOps - Tienes una base sólida
-- 🥇 **261-360 puntos:** Senior DevOps - ¡Impresionante!
-- 🏆 **361+ puntos:** DevOps Master - Estás lista para cualquier reto
+- 🥉 **105-160 puntos:** Junior DevOps - ¡Buen comienzo!
+- 🥈 **161-250 puntos:** Mid DevOps - Tienes una base sólida
+- 🥇 **251-350 puntos:** Senior DevOps - ¡Impresionante!
+- 🏆 **351+ puntos:** DevOps Master - Estás lista para cualquier reto
 
 ---
 
