@@ -18,6 +18,13 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # --- ARREGLO PARA INSTALAR DEPENDENCIAS Y ARRANCAR ---
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              pip install flask flask-sqlalchemy psycopg2-binary
+              python -m app.app
+          # ----------------------------------------------------
           ports:
             - containerPort: 5000
               protocol: TCP
