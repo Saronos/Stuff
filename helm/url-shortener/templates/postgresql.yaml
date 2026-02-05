@@ -27,7 +27,6 @@ spec:
       storage: {{ .Values.postgresql.storage }}
 
 ---
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -49,31 +48,21 @@ spec:
     spec:
       containers:
         - name: postgresql
-          # CAMBIA ESTA LÍNEA (Línea 43 aprox):
-          image: image-registry.openshift-image-registry.svc:5000/openshift/postgresql:12-el8
+          image: postgres:15-alpine
           ports:
             - containerPort: 5432
-          env:
-            # Revisa que estos nombres coincidan con la imagen de OpenShift:
-            - name: POSTGRESQL_USER
-              value: {{ .Values.database.user | quote }}
-            - name: POSTGRESQL_PASSWORD
-              value: {{ .Values.database.password | quote }}
-            - name: POSTGRESQL_DATABASE
-              value: {{ .Values.database.name | quote }}
-            # Elimina o comenta la variable PGDATA, la imagen oficial no la necesita igual
-            # Esta es la clave: le decimos que use una subcarpeta
-            - name: PGDATA
-              value: /var/lib/postgresql/data/mydata
+          envFrom:
+            - secretRef:
+                name: postgresql-secret
           volumeMounts:
             - name: postgresql-data
               mountPath: /var/lib/postgresql/data
           resources:
             requests:
-              memory: "256Mi"
+              memory: "128Mi"
               cpu: "100m"
             limits:
-              memory: "512Mi"
+              memory: "256Mi"
               cpu: "500m"
       volumes:
         - name: postgresql-data
