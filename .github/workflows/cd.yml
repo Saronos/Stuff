@@ -2,9 +2,13 @@ name: CD
 
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: [CI]
     types: [completed]
     branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   deploy:
@@ -15,27 +19,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Install OpenShift CLI and Helm
+      - name: Install OpenShift CLI
         uses: redhat-actions/oc-installer@v1
         with:
-          oc_version: 'latest'
-          # Esto instalará automáticamente tanto 'oc' como 'helm'
-          helm_version: 'latest'
-
+          oc_version: '4.12'
+      
       - name: Login to OpenShift
         run: |
-          oc login --token=${{ secrets.OPENSHIFT_TOKEN }} --server=${{ secrets.OPENSHIFT_SERVER }} --insecure-skip-tls-verify
+          oc login --token=${{ secrets.OPENSHIFT_TOKEN }} --server=${{ secrets.OPENSHIFT_SERVER }}
       
-      - name: Deploy with Helm
+      - name: Set image tag
         run: |
-          helm upgrade --install url-shortener ./helm/url-shortener \
-            --set image.repository=ghcr.io/${{ github.repository }} \
-            --set image.tag=latest \
-            --namespace asstrid-dev \
-            --wait --timeout 15m0s
+          echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       
-      - name: Verify Deployment
+      - name: Deploy to OpenShift
         run: |
-          oc get all -n asstrid-dev
-          ROUTE_URL=$(oc get route url-shortener -n asstrid-dev -o jsonpath='{.spec.host}' || echo "Route no encontrada")
-          echo "Despliegue completado con éxito: https://$ROUTE_URL"
+          # Actualizar imagen en deployment
+          oc set image deployment/url-shortener \
+            url-shortener=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            --record
+          
+          # Esperar a que el rollout termine
+          oc rollout status deployment/url-shortener --timeout=300s
+      
+      - name: Verify deployment
+        run: |
+          # Obtener la URL de la route
+          ROUTE_URL=$(oc get route url-shortener -o jsonpath='{.spec.host}')
+          echo "Application URL: https://$ROUTE_URL"
+          
+          # Verificar health check
+          curl -f https://$ROUTE_URL/health/live || exit 1
+          echo "✅ Deployment successful!"
