@@ -22,7 +22,8 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              pip install --user flask flask-sqlalchemy psycopg2-binary gunicorn
+              pip install flask flask-sqlalchemy psycopg2-binary gunicorn
+              export PATH=$PATH:/home/appuser/.local/bin
               python -m app.app
           # ----------------------------------------------------
           ports:
