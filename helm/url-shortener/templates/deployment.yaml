@@ -22,7 +22,7 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              --user flask flask-sqlalchemy psycopg2-binary gunicorn
+              pip install --user flask flask-sqlalchemy psycopg2-binary gunicorn
               python -m app.app
           # ----------------------------------------------------
           ports:
