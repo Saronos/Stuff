@@ -42,6 +42,9 @@ jobs:
           # Esperar a que el rollout termine
           oc rollout status deployment/url-shortener --timeout=300s
       
+          # Esperar a que los pods estén listos
+          oc wait --for=condition=ready pod -l app=url-shortener --timeout=120s
+
       - name: Verify deployment
         run: |
           # Esperar un poco para que la aplicación esté completamente lista
