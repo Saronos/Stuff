@@ -45,12 +45,22 @@ jobs:
       - name: Verify deployment
         run: |
           # Esperar un poco para que la aplicación esté completamente lista
-          sleep 10
+          sleep 30
           
           # Obtener la URL de la route
           ROUTE_URL=$(oc get route url-shortener -o jsonpath='{.spec.host}')
           echo "Application URL: https://$ROUTE_URL"
           
           # Verificar health check
-          curl -f https://$ROUTE_URL/health/live || exit 1
-          echo "✅ Deployment successful!"
+          for i in 1 2 3; do
+            if curl -f https://$ROUTE_URL/health/live; then
+              echo "✅ Deployment successful!"
+              exit 0
+            fi
+              echo "Intento $i fallido, esperando..."
+              sleep 10
+          done
+
+          echo "❌ Deployment failed after 3 attempts."
+          exit 1
+          
