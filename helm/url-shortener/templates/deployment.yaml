@@ -18,13 +18,22 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          # --- ARREGLO PARA INSTALAR DEPENDENCIAS Y ARRANCAR ---
+          # --- ARREGLO DEFINITIVO: INSTALACIÓN CON PERMISOS Y RUTAS ---
           command: ["/bin/sh", "-c"]
           args:
             - |
-              pip install flask flask-sqlalchemy psycopg2-binary
-              python -m app.app
-          # ----------------------------------------------------
+              echo "Sincronizando dependencias..."
+              # Instalamos como --user para evitar errores de permisos en OpenShift
+              pip install --user --no-cache-dir flask flask-sqlalchemy psycopg2-binary flask-migrate
+              
+              # Configuramos las rutas para que Python encuentre lo que acabamos de instalar
+              export USER_SITE=$(python3 -m site --user-site)
+              export PYTHONPATH=$PYTHONPATH:$USER_SITE
+              
+              echo "Dependencias instaladas en: $USER_SITE"
+              echo "Arrancando aplicación..."
+              python3 -m app.app
+          # ------------------------------------------------------------
           ports:
             - containerPort: 5000
               protocol: TCP
@@ -35,15 +44,16 @@ spec:
                 name: {{ include "url-shortener.fullname" . }}-secret
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          # Aumentamos los tiempos (180s) para dar tiempo a la descarga de librerías
           livenessProbe:
             httpGet:
               path: /health/live
               port: 5000
-            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            initialDelaySeconds: 180
+            periodSeconds: 20
           readinessProbe:
             httpGet:
               path: /health/ready
               port: 5000
-            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            initialDelaySeconds: 180
+            periodSeconds: 20
