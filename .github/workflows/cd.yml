@@ -44,6 +44,9 @@ jobs:
       
       - name: Verify deployment
         run: |
+          # Esperar un poco para que la aplicación esté completamente lista
+          sleep 10
+          
           # Obtener la URL de la route
           ROUTE_URL=$(oc get route url-shortener -o jsonpath='{.spec.host}')
           echo "Application URL: https://$ROUTE_URL"
