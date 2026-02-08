@@ -11,9 +11,9 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar requirements e instalar dependencias
+# Copiar requirements e instalar dependencias con --user
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --user -r requirements.txt
 
 # ============================================
 # Stage 2: Runtime
@@ -28,15 +28,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --shell /bin/bash appuser
 
-# Copiar dependencias instaladas del builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin/gunicorn /usr/local/bin/gunicorn
+# Copiar dependencias instaladas del builder (--user instala en /root/.local)
+COPY --from=builder /root/.local /home/appuser/.local
 
 # Copiar código de la aplicación
 COPY --chown=appuser:appuser app/ ./app/
 
 # Configurar entorno
-ENV PYTHONPATH=/home/appuser/.local/lib/python3.11/site-packages
+ENV PATH=/home/appuser/.local/bin:$PATH
 ENV PYTHONUNBUFFERED=1
 
 # Cambiar a usuario no-root

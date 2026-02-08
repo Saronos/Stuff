@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify, redirect
 from app.models import db, URL
 from app.utils import generate_short_code
 from app.config import Config
+from datetime import datetime
+from sqlalchemy.exc import IntegrityError
 
 
 def create_app(config_class=Config):
@@ -40,17 +42,19 @@ def create_app(config_class=Config):
         if not original_url.startswith(('http://', 'https://')):
             return jsonify({'error': 'Invalid URL format'}), 400
 
-        # Generar código único
-        short_code = generate_short_code()
-        while URL.query.filter_by(short_code=short_code).first():
+        # Generar código único con retry para manejar race conditions
+        max_retries = 5
+        for attempt in range(max_retries):
             short_code = generate_short_code()
-
-        # Crear registro
-        url_entry = URL(original_url=original_url, short_code=short_code)
-        db.session.add(url_entry)
-        db.session.commit()
-
-        return jsonify(url_entry.to_dict()), 201
+            try:
+                url_entry = URL(original_url=original_url, short_code=short_code)
+                db.session.add(url_entry)
+                db.session.commit()
+                return jsonify(url_entry.to_dict()), 201
+            except IntegrityError:
+                db.session.rollback()
+                if attempt == max_retries - 1:
+                    return jsonify({'error': 'Could not generate unique code, try again'}), 503
 
     @app.route('/<short_code>', methods=['GET'])
     def redirect_to_url(short_code):
@@ -58,6 +62,10 @@ def create_app(config_class=Config):
 
         if not url_entry:
             return jsonify({'error': 'URL not found'}), 404
+
+        # Comprobar si la URL ha expirado
+        if url_entry.expires_at and url_entry.expires_at < datetime.utcnow():
+            return jsonify({'error': 'URL has expired'}), 410
 
         # Incrementar contador de clicks
         url_entry.clicks += 1
